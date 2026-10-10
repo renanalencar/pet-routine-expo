@@ -1,26 +1,77 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { CardPet } from './src/components/card-pet';
+import { buscarPetEmDestaque } from './src/services/pet-service';
+import { type EstadoTela, type Pet } from './src/types/pet';
+import { cores, espaco } from './src/theme';
 
-// TODO(Aula 2 — Ex. 3): este componente tem erros propositais de View/Text/StyleSheet
-// para você corrigir — ver exercises.md da Aula 2.
-// TODO(Aula 2 — Ex. 4 a 7): crie `src/types/pet.ts` com `Pet`, `StatusPasseio`,
-// `EspeciePet` e os utility types derivados (Pick/Omit/Partial).
-// TODO(Aula 2 — Ex. 6): modele o estado desta tela com `EstadoTela<Pet>`
-// (carregando | sucesso | erro) em vez de booleanos soltos.
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>App de Gestão e Rotina Pet</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  const [estado, setEstado] = useState<EstadoTela<Pet>>({ tipo: 'carregando' });
+
+  const carregar = useCallback(async () => {
+    setEstado({ tipo: 'carregando' });
+    try {
+      const pet = await buscarPetEmDestaque();
+      setEstado({ tipo: 'sucesso', dados: pet });
+    } catch {
+      setEstado({ tipo: 'erro', mensagem: 'Erro ao carregar o pet em destaque.' });
+    }
+  }, []);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
+
+  function registrarPasseio() {
+    if (estado.tipo === 'sucesso') {
+      setEstado({
+        tipo: 'sucesso',
+        dados: { ...estado.dados, statusPasseio: 'concluido' },
+      });
+    }
+  }
+
+  switch (estado.tipo) {
+    case 'carregando':
+      return (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color={cores.primaria} />
+        </View>
+      );
+    case 'sucesso':
+      return (
+        <View style={styles.container}>
+          <CardPet pet={estado.dados} aoRegistrarPasseio={registrarPasseio} />
+        </View>
+      );
+    case 'erro':
+      return (
+        <View style={styles.centro}>
+          <Text style={{ color: cores.erro }}>{estado.mensagem}</Text>
+          <Text style={styles.textoBotao} onPress={carregar}>
+            Tentar novamente
+          </Text>
+        </View>
+      );
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    paddingTop: espaco.xl,
+    paddingHorizontal: espaco.md,
+    backgroundColor: cores.fundo,
+  },
+  centro: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: cores.fundo,
+    gap: espaco.md,
+  },
+  textoBotao: {
+    color: cores.primaria,
+    fontWeight: 'bold',
   },
 });
