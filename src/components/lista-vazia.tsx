@@ -7,27 +7,24 @@
 //   - primeiro acesso → o que ele pode fazer
 //   - busca sem resultado → o que ele pode tentar
 // ============================================================
-import { StyleSheet, Text, View } from 'react-native';
-
-import { cores, espaco, tipografia } from '../theme';
+import { View, Text, StyleSheet } from 'react-native';
 
 type ListaVaziaProps = {
-  // TODO P3.12: uma prop que permita distinguir "primeiro acesso" de "busca sem resultado".
-  //   Sugestão: termoBusca?: string
-  //   Se termoBusca está definido e não-vazio → "busca sem resultado"
-  //   Senão → "primeiro acesso" (a lista está vazia de verdade)
+  busca: string;
 };
 
-export function ListaVazia(/* TODO P3.12: desestruture a prop */) {
-  // TODO P3.13: dois textos diferentes, conforme o cenário.
-  //   Primeiro acesso: "Nenhum pet cadastrado. Que tal adicionar um?"
-  //   Busca sem resultado: "Nenhum pet encontrado para '${termoBusca}'."
-  //   A frase da busca MENCIONA o termo procurado.
-  //   As duas frases são DIFERENTES — repetir a mesma é erro.
+export function ListaVazia({ busca }: ListaVaziaProps) {
+  const eBusca = busca.trim().length > 0;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.texto}>
-        {/* TODO P3.13 */}
+      <Text style={styles.titulo}>
+        {eBusca ? 'Nenhum pet encontrado' : 'Nenhum pet cadastrado'}
+      </Text>
+      <Text style={styles.subtitulo}>
+        {eBusca
+          ? `Não foi encontrado nenhum pet correspondente ao termo "${busca}".`
+          : 'Sua lista de pets está vazia no momento.'}
       </Text>
     </View>
   );
@@ -35,12 +32,18 @@ export function ListaVazia(/* TODO P3.12: desestruture a prop */) {
 
 const styles = StyleSheet.create({
   container: {
-    // TODO P3.14: centralize e use padding generoso (espaco.lg ou xl)
-    alignItems: 'center' as const,
+    padding: 32,
+    alignItems: 'center',
+    gap: 8,
   },
-  texto: {
-    ...tipografia.corpo,
-    color: cores.textoFraco,
-    textAlign: 'center' as const,
+  titulo: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333333',
+  },
+  subtitulo: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
   },
 });

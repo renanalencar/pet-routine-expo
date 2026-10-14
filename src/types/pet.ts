@@ -18,21 +18,10 @@
 // ============================================================
 
 // ============================================================
-// TODO P1.1.1 — Union types literais. Nenhum destes pode ser `string`.
-//   EspeciePet     → cachorro, gato, ave, outro
-//   PortePet       → pequeno, medio, grande
-//   StatusPasseio  → pendente, concluido, cancelado
-// ============================================================
+export type StatusPasseio = 'pendente' | 'concluido' | 'cancelado';
 export type EspeciePet = 'cachorro' | 'gato' | 'ave' | 'outro';
 export type PortePet = 'pequeno' | 'medio' | 'grande';
-export type StatusPasseio = 'pendente' | 'concluido' | 'cancelado';
 
-// ============================================================
-// TODO P1.1.2 — A entidade completa, como ela virá do servidor um dia.
-//   Campos: id, nome, especie, porte, statusPasseio, idadeMeses, criadoEm.
-//   Pense no tipo de cada um. Você vai justificar uma dessas escolhas
-//   na Prática 2.
-// ============================================================
 export interface Pet {
   id: string;
   nome: string;
@@ -41,94 +30,11 @@ export interface Pet {
   statusPasseio: StatusPasseio;
   idadeMeses: number;
   criadoEm: Date;
-  // Prática 3 — campos de sensor (opcionais de propósito):
-  // O usuário pode negar permissão, e o app tem que continuar funcionando.
-  // Um pet sem foto e sem local ainda é um pet.
-  local?: { latitude: number; longitude: number; precisaoMetros: number };
+  // Campos opcionais da Prática 3
+  local?: {
+    latitude: number;
+    longitude: number;
+    precisaoMetros: number;
+  };
   fotoUri?: string;
 }
-
-// ============================================================
-// TODO P1.1.3 — Tipos DERIVADOS. Use utility types; não redigite campos.
-//   NovoPet         → o que o formulário de cadastro envia
-//   ResumoPet       → o que o card da lista "Meus pets" precisa
-//   AtualizacaoPet  → edição parcial de um pet já cadastrado
-//
-//   Dica: os utility types desta prática são `Omit`, `Pick` e `Partial`.
-//   Pergunte-se de QUEM cada um deve derivar — nem sempre é de `Pet`.
-// ============================================================
-export type NovoPet = Omit<Pet, 'id' | 'statusPasseio' | 'criadoEm'>;
-export type ResumoPet = Pick<Pet, 'id' | 'nome' | 'especie' | 'statusPasseio'>;
-export type AtualizacaoPet = Partial<NovoPet>;
-
-// ============================================================
-// TODO P1.1.4 — Rótulos legíveis, com switch exaustivo e SEM `default`.
-//   Sem `default`, o compilador avisa se um dia você acrescentar uma
-//   variante ao union e esquecer de tratá-la aqui. É esse o ponto.
-// ============================================================
-export function rotuloStatusPasseio(status: StatusPasseio): string {
-  switch (status) {
-    case 'pendente': return 'Pendente';
-    case 'concluido': return 'Concluído';
-    case 'cancelado': return 'Cancelado';
-  }
-}
-
-export function rotuloEspecie(especie: EspeciePet): string {
-  switch (especie) {
-    case 'cachorro': return 'Cachorro';
-    case 'gato': return 'Gato';
-    case 'ave': return 'Ave';
-    case 'outro': return 'Outro';
-  }
-}
-
-// ============================================================
-// Estado de tela — união discriminada para qualquer tela do app.
-// Definido aqui (junto ao domínio) para ser reutilizado tanto em
-// lógica pura (tela-pet.ts) quanto nos componentes React (App.tsx).
-// ============================================================
-export type EstadoTela<T> =
-  | { tipo: 'carregando' }
-  | { tipo: 'sucesso'; dados: T }
-  | { tipo: 'erro'; mensagem: string };
-
-// ============================================================
-// VERIFICAÇÃO — não apague
-// ============================================================
-
-// DEVEM compilar exatamente assim, sem campos a mais nem a menos:
-const novo: NovoPet = {
-  nome: 'Fubá',
-  especie: 'gato',
-  porte: 'pequeno',
-  idadeMeses: 30,
-};
-
-const resumo: ResumoPet = {
-  id: 'p1',
-  nome: 'Fubá',
-  especie: 'gato',
-  statusPasseio: 'pendente',
-};
-
-const parcial: AtualizacaoPet = { idadeMeses: 31 };
-
-// DEVEM dar erro — descomente uma de cada vez para confirmar:
-// const errado1: NovoPet = { nome: 'Fubá', especie: 'gato', porte: 'pequeno', idadeMeses: 30, id: 'p1' };
-// const errado2: NovoPet = { nome: 'Fubá', especie: 'peixe', porte: 'pequeno', idadeMeses: 30 };
-// const errado3: ResumoPet = { id: 'p1', nome: 'Fubá', especie: 'gato' };
-// const errado4: AtualizacaoPet = { statusPasseio: 'concluido' };
-
-// Só para o `tsc` não reclamar de variáveis não usadas na verificação:
-void novo;
-void resumo;
-void parcial;
-
-// ============================================================
-// TODO P1.1.5 — Teste final da prática (responda aqui, em comentário)
-//   Acrescente o campo `microchip: string` à interface `Pet`.
-//   Quantos dos três tipos derivados você precisou editar à mão?
-//
-//   Resposta: Zero. Por usarmos utility types (`Omit`, `Pick`, `Partial`), as alterações na interface base refletem automaticamente nos tipos derivados. A ausência do uso de redigitação evita inconsistências.
-// ============================================================

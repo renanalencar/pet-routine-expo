@@ -13,153 +13,155 @@
 //   • Sem useEffect para sensores (cleanup é assunto da Aula 6)
 // ============================================================
 import { useState } from 'react';
-import { SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
-
-import type { Pet } from './src/types/pet';
+import { View, Text, SectionList, TextInput, StyleSheet } from 'react-native';
 import { PETS } from './src/data/pets';
-import { agrupar, filtrarPorNome, type Secao } from './src/lib/agrupar';
+import type { Pet } from './src/types/pet';
+import { agrupar, filtrarPorNome } from './src/lib/agrupar';
 import { ItemPet } from './src/components/item-pet';
 import { ListaVazia } from './src/components/lista-vazia';
 import { TelaRegistro } from './src/screens/tela-registro';
-import { cores, espaco, tipografia } from './src/theme';
 
 export default function App() {
-  // TODO P3.28: declare os quatro estados da tela:
-  //   const [pets, setPets] = useState<Pet[]>(PETS);
-  //   const [busca, setBusca] = useState('');
-  //   const [atualizando, setAtualizando] = useState(false);
-  //   const [petRegistrando, setPetRegistrando] = useState<string | null>(null);
-  //   petRegistrando guarda o ID do pet sendo registrado, ou null para a lista.
+  const [pets, setPets] = useState<Pet[]>(PETS);
+  const [busca, setBusca] = useState('');
+  const [atualizando, setAtualizando] = useState(false);
+  const [petRegistrando, setPetRegistrando] = useState<Pet | null>(null);
 
-  // TODO P3.29: alternar status do passeio — array novo, objeto novo. Nada de mutação.
-  //   function alternarStatus(id: string) {
-  //     setPets(anteriores =>
-  //       anteriores.map(p =>
-  //         p.id === id
-  //           ? { ...p, statusPasseio: p.statusPasseio === 'concluido' ? 'pendente' : 'concluido' }
-  //           : p
-  //       )
-  //     );
-  //   }
+  // P3.29: Alternar status de passeio imutavelmente
+  function alternarStatus(id: string) {
+    setPets((anteriores) =>
+      anteriores.map((p) => {
+        if (p.id !== id) return p;
+        const novoStatus = p.statusPasseio === 'pendente' ? 'concluido' : 'pendente';
+        return { ...p, statusPasseio: novoStatus };
+      })
+    );
+  }
 
-  // TODO P3.30: remover pet — array novo via filter.
-  //   function removerPet(id: string) {
-  //     setPets(anteriores => anteriores.filter(p => p.id !== id));
-  //   }
+  // P3.30: Remover pet imutavelmente
+  function removerPet(id: string) {
+    setPets((anteriores) => anteriores.filter((p) => p.id !== id));
+  }
 
-  // TODO P3.31: recarregar — simula refresh, volta ao mock e limpa a busca.
-  //   async function recarregar() {
-  //     setAtualizando(true);
-  //     await new Promise(r => setTimeout(r, 800));
-  //     setPets(PETS);
-  //     setBusca('');
-  //     setAtualizando(false);
-  //   }
+  // P3.31: Pull to refresh (recarregar dados iniciais)
+  function recarregar() {
+    setAtualizando(true);
+    setTimeout(() => {
+      setPets(PETS);
+      setAtualizando(false);
+    }, 800);
+  }
 
-  // TODO P3.32: receber o registro de passeio da TelaRegistro.
-  //   function handleRegistro(local?: Pet['local'], fotoUri?: string) {
-  //     if (!petRegistrando) return;
-  //     setPets(anteriores =>
-  //       anteriores.map(p =>
-  //         p.id === petRegistrando
-  //           ? { ...p, statusPasseio: 'concluido' as const, local, fotoUri }
-  //           : p
-  //       )
-  //     );
-  //     setPetRegistrando(null);
-  //   }
+  // P3.32: Atualizar pet após captura na TelaRegistro
+  function handleSalvarRegistro(
+    local?: { latitude: number; longitude: number; precisaoMetros: number },
+    fotoUri?: string
+  ) {
+    if (!petRegistrando) return;
 
-  // TODO P3.33: renderização condicional — quando petRegistrando não é null,
-  //   mostre a TelaRegistro em vez da lista.
-  //   const petAlvo = pets.find(p => p.id === petRegistrando);
-  //   if (petAlvo) {
-  //     return (
-  //       <TelaRegistro
-  //         pet={petAlvo}
-  //         onSalvar={handleRegistro}
-  //         onCancelar={() => setPetRegistrando(null)}
-  //       />
-  //     );
-  //   }
+    setPets((anteriores) =>
+      anteriores.map((p) => {
+        if (p.id !== petRegistrando.id) return p;
+        return {
+          ...p,
+          statusPasseio: 'concluido',
+          local: local ?? p.local,
+          fotoUri: fotoUri ?? p.fotoUri,
+        };
+      })
+    );
+    setPetRegistrando(null);
+  }
 
-  // TODO P3.34: seções da lista — filtrar E DEPOIS agrupar. A ordem importa.
-  //   const secoes = agrupar(filtrarPorNome(pets, busca));
-  //   Explique no README por que filtrar antes de agrupar.
+  // P3.33: Exibição condicional da Tela de Registro
+  if (petRegistrando) {
+    return (
+      <TelaRegistro
+        pet={petRegistrando}
+        onSalvar={handleSalvarRegistro}
+        onCancelar={() => setPetRegistrando(null)}
+      />
+    );
+  }
+
+  // P3.34: Processamento de dados fora do JSX
+  const petsFiltrados = filtrarPorNome(pets, busca);
+  const secoes = agrupar(petsFiltrados);
 
   return (
-    <View style={styles.tela}>
-      <SectionList<Pet, Secao>
-        sections={/* TODO P3.34 */ [] as Secao[]}
+    <View style={styles.container}>
+      <SectionList
+        sections={secoes}
         keyExtractor={(item) => item.id}
-        // TODO P3.35: configure o SectionList completo:
-        //
-        //   renderItem — use ItemPet com as callbacks:
-        //     renderItem={({ item }) => (
-        //       <ItemPet
-        //         pet={item}
-        //         onAlternar={alternarStatus}
-        //         onRemover={removerPet}
-        //         onRegistrar={(id) => setPetRegistrando(id)}
-        //       />
-        //     )}
-        //     Nota: depende de estado local, então pode ficar inline.
-        //
-        //   renderSectionHeader — Text com o título da seção:
-        //     renderSectionHeader={({ section }) => (
-        //       <Text style={styles.cabecalhoSecao}>{section.title}</Text>
-        //     )}
-        //
-        //   ItemSeparatorComponent ou contentContainerStyle com gap
-        //
-        //   ListEmptyComponent — ListaVazia com o termo de busca:
-        //     ListEmptyComponent={<ListaVazia termoBusca={busca} />}
-        //
-        //   stickySectionHeadersEnabled={true}
-        //
-        //   refreshing={atualizando}
-        //   onRefresh={recarregar}
+        refreshing={atualizando}
+        onRefresh={recarregar}
         ListHeaderComponent={
-          <View style={styles.cabecalho}>
-            {/* TODO P3.36: TextInput de busca.
-                  value={busca}
-                  onChangeText={setBusca}
-                  placeholder="Buscar pet por nome..."
-                  style={styles.busca} */}
+          <View style={styles.cabecalhoLista}>
+            <Text style={styles.tituloApp}>Rotina Pet</Text>
+            <TextInput
+              style={styles.inputBusca}
+              placeholder="Buscar pet por nome..."
+              value={busca}
+              onChangeText={setBusca}
+            />
           </View>
         }
-        contentContainerStyle={styles.conteudo}
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.tituloSecao}>{title}</Text>
+        )}
+        renderItem={({ item }) => (
+          <ItemPet
+            pet={item}
+            onAlternar={alternarStatus}
+            onRemover={removerPet}
+            onRegistrar={(p) => setPetRegistrando(p)}
+          />
+        )}
+        SectionSeparatorComponent={() => <View style={styles.espacoSecao} />}
+        ItemSeparatorComponent={() => <View style={styles.espacoItem} />}
+        ListEmptyComponent={<ListaVazia busca={busca} />}
+        contentContainerStyle={styles.conteudoLista}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tela: {
+  container: {
     flex: 1,
-    paddingTop: 48,
-    backgroundColor: cores.fundo,
+    backgroundColor: '#F5F5F5',
   },
-  cabecalho: {
-    paddingHorizontal: espaco.md,
-    paddingBottom: espaco.sm,
+  conteudoLista: {
+    padding: 16,
   },
-  conteudo: {
-    gap: espaco.sm,
-    paddingHorizontal: espaco.md,
-    paddingBottom: espaco.lg,
+  cabecalhoLista: {
+    gap: 12,
+    marginBottom: 16,
   },
-  cabecalhoSecao: {
-    ...tipografia.titulo,
-    backgroundColor: cores.fundo,
-    paddingVertical: espaco.sm,
-    paddingHorizontal: espaco.md,
+  tituloApp: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111111',
   },
-  busca: {
+  inputBusca: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: cores.textoFraco,
-    borderRadius: espaco.sm,
-    padding: espaco.sm,
-    fontSize: tipografia.corpo.fontSize,
-    backgroundColor: cores.cartao,
+    borderColor: '#E0E0E0',
+    fontSize: 16,
+  },
+  tituloSecao: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#444444',
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 8,
+  },
+  espacoItem: {
+    height: 10,
+  },
+  espacoSecao: {
+    height: 16,
   },
 });

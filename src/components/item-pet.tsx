@@ -7,7 +7,6 @@
 // Nunca onPressIn.
 // ============================================================
 import { Pressable, StyleSheet } from 'react-native';
-
 import type { Pet } from '../types/pet';
 import { CardPet } from './card-pet';
 
@@ -15,43 +14,36 @@ type ItemPetProps = {
   pet: Pet;
   onAlternar: (id: string) => void;
   onRemover: (id: string) => void;
-  onRegistrar: (id: string) => void;
+  onRegistrar: (pet: Pet) => void;
 };
 
 export function ItemPet({ pet, onAlternar, onRemover, onRegistrar }: ItemPetProps) {
   return (
     <Pressable
-      // TODO P3.6: toque curto alterna o status do passeio; toque longo remove.
-      //   onPress={() => onAlternar(pet.id)}
-      //   onLongPress={() => onRemover(pet.id)}
-      //
-      // TODO P3.7: acessibilidade — papel e rótulo.
-      //   accessibilityRole="button"
-      //   accessibilityLabel={`${pet.nome}, toque para alternar passeio`}
-      //
-      // TODO P3.8: hitSlop e unstable_pressDelay.
-      //   hitSlop amplia a área de toque sem mudar o visual — útil em itens pequenos.
-      //   unstable_pressDelay evita feedback visual ao rolar a lista.
-      //   Justifique cada valor num comentário.
+      onPress={() => onAlternar(pet.id)}
+      onLongPress={() => onRemover(pet.id)}
+      accessibilityRole="button"
+      accessibilityLabel={`Pet ${pet.nome}, status ${pet.statusPasseio}`}
+      hitSlop={8}
+      unstable_pressDelay={100}
       style={({ pressed }) => [
-        styles.item,
-        // TODO P3.9: feedback visual quando pressed.
-        //   Ex: pressed && { opacity: 0.7 }
+        styles.itemContainer,
+        pressed && styles.itemPressionado,
       ]}
     >
-      {/* TODO P3.10: reaproveite o CardPet aqui dentro.
-                Passe pet e aoRegistrarPasseio={() => onRegistrar(pet.id)}.
-                O Text onPress do CardPet NÃO conflita com o Pressable:
-                eventos de Text não borbulham para o Pressable pai. */}
+      <CardPet pet={pet} onRegistrarPasseio={() => onRegistrar(pet)} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  item: {
-    // TODO P3.11: SEM margin aqui.
-    //   O espaço entre itens vem de gap no contentContainerStyle
-    //   ou de ItemSeparatorComponent. Margin num item de lista
-    //   é o antipadrão que esta prática ensina a evitar.
+  itemContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.08)',
+  },
+  itemPressionado: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
 });

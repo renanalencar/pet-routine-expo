@@ -8,28 +8,32 @@
 
 import type { Pet } from '../types/pet';
 
-export type Secao = { title: string; data: Pet[] };
+export type Secao = {
+  title: string;
+  data: Pet[];
+};
 
 export function agrupar(pets: Pet[]): Secao[] {
-  // TODO P3.2: agrupe pelo critério que o grupo escolheu.
-  //   Sugestão: statusPasseio (use rotuloStatusPasseio como título da seção).
-  //   Alternativas válidas: espécie ou faixa etária.
-  //
-  //   Exemplo de abordagem:
-  //     1. Crie um Map<string, Pet[]>
-  //     2. Itere pelos pets, adicionando cada um ao grupo correto
-  //     3. Converta o Map em Secao[]
-  //
-  // TODO P3.3: descarte grupos vazios — seção sem itens não aparece na lista.
-  //
-  // TODO P3.4: a ordem dos grupos é uma DECISÃO de produto.
-  //   Escreva num comentário qual foi a sua e por quê.
-  //   Ex: "pendente primeiro porque é o que exige ação do dono"
-  return [];
+  // P3.2: Agrupamento por status do passeio
+  // Decisão: Organizar primeiro o que requer ação (pendentes), seguido dos finalizados e cancelados.
+  const ordemStatus: Array<{ status: Pet['statusPasseio']; titulo: string }> = [
+    { status: 'pendente', titulo: 'Passeios Pendentes' },
+    { status: 'concluido', titulo: 'Passeios Concluídos' },
+    { status: 'cancelado', titulo: 'Passeios Cancelados' },
+  ];
+
+  const secoes = ordemStatus.map(({ status, titulo }) => ({
+    title: titulo,
+    data: pets.filter((p) => p.statusPasseio === status),
+  }));
+
+  // P3.3: Descartar grupos vazios
+  return secoes.filter((secao) => secao.data.length > 0);
 }
 
 export function filtrarPorNome(pets: Pet[], busca: string): Pet[] {
-  // TODO P3.5: busca case-insensitive. Busca vazia devolve todos.
-  //   Dica: normalize com toLowerCase() em ambos os lados.
-  return pets;
+  // P3.5: Busca case-insensitive. Busca vazia retorna todos.
+  const termo = busca.trim().toLowerCase();
+  if (!termo) return pets;
+  return pets.filter((pet) => pet.nome.toLowerCase().includes(termo));
 }

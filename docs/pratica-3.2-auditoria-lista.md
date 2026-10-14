@@ -1,38 +1,27 @@
-# Auditoria de lista — TelaPets
+# Auditoria de Lista - Prática 3.2
 
-## 1. Problemas encontrados
+## Diagnóstico de Problemas Identificados
 
-| # | Trecho | Problema | Sintoma para o usuário | Correção |
-|---|---|---|---|---|
-| 1 | | | | |
-<!-- TODO: no mínimo 8 linhas. Um "problema" precisa ter sintoma — se você não
-     consegue descrever o que o usuário vê, provavelmente é preferência sua. -->
+1. **Uso de ScrollView envolvendo FlatList**
+   - **Sintoma para o usuário:** A tela congela e trava ao rolar com muitos itens.
+   - **Causa técnica:** A ScrollView pai renderiza todos os itens da FlatList de uma vez só, destruindo a virtualização e a reciclagem de memória.
 
-## 2. O problema arquitetural
+2. **KeyExtractor usando o índice do array (`index.toString()`)**
+   - **Sintoma:** Ao alternar ou atualizar um item, itens errados mudam de cor ou o app mostra dados inconsistentes.
+   - **Causa:** O índice muda quando a lista é filtrada ou itens são removidos, quebrando a reconciliação do React.
 
-<!-- TODO: um dos problemas anula o benefício de outro componente inteiro.
-     Qual é, e por que ele é mais grave que os outros sete juntos? -->
+3. **Mutação direta de estado no método `registrar`**
+   - **Sintoma:** A interface não atualiza ao clicar em "registrar passeio".
+   - **Causa:** `alvo.statusPasseio = 'concluido'; setPets(pets);` altera a mesma referência em memória, impedindo o re-render.
 
-## 3. Os três ajustes de desempenho deste arquivo
+4. **Invocação de componente no `ListHeaderComponent`**
+   - **Sintoma:** O campo de busca perde o foco a cada caractere digitado.
+   - **Causa:** Definir uma função inline de componente força a recriação do TextInput a cada renderização.
 
-<!-- TODO: `removeClippedSubviews`, `windowSize` e `initialNumToRender` foram
-     mexidos. Para CADA um: qual era o default, o que a mudança causa,
-     e por que ela não resolve o problema real desta tela. -->
+5. **Ação de clique atribuída em elemento `Text` (`Text onPress`)**
+   - **Sintoma:** Dificuldade de clicar no botão e ausência de feedback visual de toque.
+   - **Causa:** Uso de `Text` para interações em vez do componente nativo `Pressable`.
 
-## 4. O bug de "às vezes não atualiza"
-
-<!-- TODO: explique a causa exata usando a palavra que a documentação usa
-     para descrever o comportamento da FlatList. Dê as duas correções
-     possíveis e escolha uma. -->
-
-## 5. Ordem de refatoração — tenho meio dia
-
-| Ordem | O que faço | Risco se não fizer | Retorno |
-|---|---|---|---|
-| 1 | | | |
-<!-- TODO: justifique por RISCO e RETORNO. A ordem em que os problemas
-     aparecem no arquivo não é uma justificativa. -->
-
-## 6. O que eu decidi NÃO corrigir
-
-<!-- TODO: um item, com o motivo. Toda auditoria honesta tem esse parágrafo. -->
+6. **Configuração agressiva e incorreta de desempenho (`initialNumToRender={100}`, `windowSize={50}`)**
+   - **Sintoma:** Demora excessiva para carregar a tela e alto consumo de memória.
+   - **Causa:** Forçar a renderização de 100 itens de início consome processamento desnecessário.

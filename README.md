@@ -51,3 +51,19 @@ Os `TODO` deixados no código apontam para os exercícios de `exercises.md` de c
 
 - **Decisão de modelagem**: Optamos por utilizar a prop condicional `destacado?: boolean` no componente `Card` no lugar de criar componentes separados. Como o destaque do cartão reflete mudanças mínimas de interface (bordas diferentes), o uso de um booleano mantém o componente genérico e de simples utilização.
 - **Decisão de organização de estilo**: As cores, os espaçamentos principais e as propriedades fixas de tipografia viraram tokens no `theme.ts` visando assegurar a consistência visual geral da aplicação. Já atributos de disposição e estruturais (como `flexDirection`, alinhamentos e variações focadas da margem interna) ficaram como estilos locais nos componentes, já que refletem a necessidade espacial e estrutural local de cada exibição.
+
+
+## Decisões da Prática 3
+
+1. **Por que SectionList e não FlatList?**
+   - Optamos pela `SectionList` para agrupar visualmente os pets por status do passeio ('Passeios Pendentes', 'Passeios Concluídos' e 'Passeios Cancelados'), permitindo que o usuário identifique rapidamente quais pets ainda precisam passear.
+
+2. **Onde agrupamos os dados e por que fora do JSX?**
+   - As funções de agrupamento e filtragem foram centralizadas na pasta `src/lib/agrupar.ts`. Isso mantém a separação de responsabilidades, garante a testabilidade do código e evita reprocessamentos pesados dentro do ciclo de render do JSX.
+
+3. **Escolha da precisão da localização (Accuracy):**
+   - Utilizamos `Location.Accuracy.Balanced`. Esta escolha oferece precisão na faixa de metros ideal para localizar um passeio pet sem provocar consumo excessivo de bateria, ao contrário de opções como `Highest` ou `BestForNavigation`.
+
+4. **Limitações assumidas:**
+   - As fotos capturadas na câmera ficam mantidas no diretório de cache temporário da aplicação e não são salvas na galeria pública do aparelho.
+   - Conforme especificação da Prática 3, a inscrição do GPS é encerrada após a leitura única da posição atual (`getCurrentPositionAsync`).

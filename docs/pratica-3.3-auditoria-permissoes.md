@@ -1,39 +1,23 @@
-# Auditoria — TelaPasseio
+# Auditoria de Permissões - Prática 3.3
 
-## 1. Problemas de permissão
+## Diagnóstico de Problemas Identificados
 
-<!-- Pelo menos três. Para cada um: o sintoma que o usuário sente,
-     a causa no código, e a correção em uma frase. -->
+1. **Vazamento de Memória / Subscription sem Remoção (`watchPositionAsync` e `Accelerometer`)**
+   - **Sintoma:** O celular esquenta, a bateria descarrega rápido e o app fica lento com o passar do tempo.
+   - **Causa:** As escutas (`watchPositionAsync` e `addListener`) são registradas dentro da função sem armazenar o objeto de subscrição para chamar `.remove()`.
 
-| # | Sintoma para o usuário | Causa no código | Correção |
-|---|---|---|---|
+2. **Controle de permissão em variável global mutável (`let jaPediuPermissao = false`)**
+   - **Sintoma:** O app para de pedir permissão se o usuário fechar a tela ou negar a primeira vez.
+   - **Causa:** Variáveis fora da árvore de estados do React persistem de maneira imprevisível no módulo.
 
-## 2. Vazamentos
+3. **Uso de precisão máxima desnecessária (`Accuracy.BestForNavigation` e `Highest`)**
+   - **Sintoma:** Alto consumo de bateria e aquecimento do dispositivo.
+   - **Causa:** Precisão de navegação veicular foi utilizada para uma simples rotina de caminhada pet.
 
-<!-- Quais torneiras ficam abertas? O que acontece com a bateria
-     e com a memória? Quantas vezes elas são abertas se o usuário
-     tocar em "Iniciar passeio" cinco vezes? -->
+4. **Intervalo do acelerômetro muito curto (`16ms`)**
+   - **Sintoma:** Travamento da interface por excesso de re-renderizações por segundo.
+   - **Causa:** Atualizar o estado a cada 16ms (60 FPS) força renders contínuos desnecessários.
 
-## 3. Consumo de bateria
-
-<!-- Três decisões neste arquivo que gastam bateria sem necessidade.
-     Para cada uma, diga o que você usaria no lugar e por quê. -->
-
-## 4. O uso errado de sensor
-
-<!-- Há um sensor sendo usado para uma finalidade que ele não atende bem.
-     Qual? Por que não funciona? O que o autor provavelmente queria? -->
-
-## 5. Os defeitos de imagem
-
-<!-- Dois problemas na exibição das fotos. -->
-
-## 6. Ordem de correção — tenho meio dia
-
-<!-- Liste em ordem, com uma justificativa por item. O critério é
-     "impacto no usuário por hora de trabalho", não "ordem no arquivo". -->
-
-## 7. O que eu decidi NÃO corrigir
-
-<!-- Pelo menos um item, com justificativa. Saber o que deixar para depois
-     é parte do trabalho. -->
+5. **Ação disparada sem verificação de estado de permissão negada**
+   - **Sintoma:** O botão falha silenciosamente se a permissão for negada.
+   - **Causa:** Não há tratamento de fluxo para o caso do usuário recusar o acesso ao GPS.
