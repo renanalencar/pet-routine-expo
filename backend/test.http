@@ -1,0 +1,104 @@
+### Variáveis Globais
+@baseUrl = http://localhost:3000
+@authToken = cole_seu_token_aqui
+
+### -------------------------------------------
+### 1. HEALTH CHECK
+### -------------------------------------------
+
+### Verificar se o backend está online
+GET {{baseUrl}}/health
+
+### -------------------------------------------
+### 2. AUTENTICAÇÃO (/api/auth/*)
+### -------------------------------------------
+
+### Login com a Conta Demo (já vem com 20 pets populados)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tutor@cesar.school",
+  "password": "123456"
+}
+
+### Signup (Criar Nova Conta de Tutor)
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Maria Tutora",
+  "email": "maria@cesar.school",
+  "password": "123456"
+}
+
+### Consultar Usuário Autenticado
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{authToken}}
+
+### Logout
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{authToken}}
+
+### -------------------------------------------
+### 3. CRUD DE PETS (/pets ou /api/pets)
+### -------------------------------------------
+
+### Listar todos os pets do tutor logado
+GET {{baseUrl}}/pets
+Authorization: Bearer {{authToken}}
+
+### Cadastrar um novo pet
+POST {{baseUrl}}/pets
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "nome": "Paçoca",
+  "especie": "cachorro",
+  "porte": "medio",
+  "idadeMeses": 14
+}
+
+### Alternar status do passeio do pet (pendente <-> concluido)
+PATCH {{baseUrl}}/pets/p1/toggle
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Registrar passeio com GPS e Foto
+PATCH {{baseUrl}}/pets/p1/passeio
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "statusPasseio": "concluido",
+  "local": {
+    "latitude": -8.059,
+    "longitude": -34.872,
+    "precisaoMetros": 8
+  },
+  "fotoUri": "file:///caminho/local/foto.jpg"
+}
+
+### Atualizar dados cadastrais do pet
+PUT {{baseUrl}}/pets/p1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "nome": "Rex Atualizado",
+  "especie": "cachorro",
+  "porte": "grande",
+  "idadeMeses": 25,
+  "statusPasseio": "concluido"
+}
+
+### Popular os 20 pets de exemplo na conta atual (opcional)
+POST {{baseUrl}}/pets/seed
+Authorization: Bearer {{authToken}}
+
+### Excluir um pet
+DELETE {{baseUrl}}/pets/p1
+Authorization: Bearer {{authToken}}

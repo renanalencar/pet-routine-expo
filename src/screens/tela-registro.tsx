@@ -1,15 +1,11 @@
 // ============================================================
-// Prática 3 — Tela de registro de passeio (sensores)
+// Prática 3 — Tela de registro de passeio
 // Disciplina: Desenvolvimento Mobile (2026.2.DM) — CESAR School
 //
-// Captura o CONTEXTO do passeio: onde aconteceu (GPS) e como ele
-// se parecia (câmera). Navegação por condicional com useState —
-// navegação real chega na Aula 7.
-//
-// CONTRATO DE TRÊS TEMPOS — preencha em cada bloco de sensor:
-//   1. PEDIR   → ______________________________
-//   2. LER     → ______________________________
-//   3. PARAR   → ______________________________  (ou: "não se aplica, porque ___")
+// CONTRATO DE TRÊS TEMPOS:
+//   1. PEDIR   → pedirPermissaoCamera() / Location.requestForegroundPermissionsAsync()
+//   2. LER     → cameraRef.takePictureAsync() / Location.getCurrentPositionAsync()
+//   3. PARAR   → fechar câmera / (não se aplica para getCurrentPositionAsync)
 //
 // Restrições:
 //   • Sem useEffect, useRef — apenas useState + hooks das bibliotecas
@@ -40,44 +36,47 @@ export function TelaRegistro({ pet, onSalvar, onCancelar }: TelaRegistroProps) {
   const [mostrarCamera, setMostrarCamera] = useState(false);
 
   // TODO P3.16: hook de permissão de câmera (das libs, não do React):
-  //   const [permissaoCamera, pedirPermissaoCamera] = useCameraPermissions();
+  const [permissaoCamera, pedirPermissaoCamera] = useCameraPermissions();
 
   // TODO P3.17: ref da câmera via useState (useRef não está disponível nesta prática).
-  //   const [cameraRef, setCameraRef] = useState<CameraView | null>(null);
-  //   Funciona como callback ref: <CameraView ref={setCameraRef} ... />
+  const [cameraRef, setCameraRef] = useState<CameraView | null>(null);
 
   // ----- Localização -----
-  // CONTRATO: 1. PEDIR → TODO P3.18
-  //           2. LER   → TODO P3.18
+  // CONTRATO: 1. PEDIR → Location.requestForegroundPermissionsAsync()
+  //           2. LER   → Location.getCurrentPositionAsync()
   //           3. PARAR → não se aplica (leitura única, sem subscription)
   async function obterLocalizacao() {
-    // TODO P3.18: peça permissão e leia a posição.
-    //
-    //   1. Cheque se o serviço está ligado:
-    //      const servico = await Location.hasServicesEnabledAsync();
-    //      if (!servico) → setErro('GPS desligado. Ative a localização nas configurações.')
-    //
-    //   2. Peça permissão:
-    //      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-    //      Trate TRÊS cenários com mensagens DISTINTAS:
-    //        • status !== 'granted' && canAskAgain  → "Permissão negada. Toque para tentar de novo."
-    //        • status !== 'granted' && !canAskAgain → "Permissão bloqueada. Vá em Configurações > Permissões."
-    //        • serviço desligado (já tratado acima)
-    //
-    //   3. Leia a posição:
-    //      const posicao = await Location.getCurrentPositionAsync({
-    //        accuracy: Location.Accuracy.High,
-    //        // TODO P3.22: justifique a escolha de Accuracy no README.
-    //        //   Por que High e não BestForNavigation? Pense em bateria.
-    //      });
-    //
-    //   4. Salve no estado:
-    //      setLocal({
-    //        latitude: posicao.coords.latitude,
-    //        longitude: posicao.coords.longitude,
-    //        precisaoMetros: posicao.coords.accuracy ?? 0,
-    //      });
-    //      setErro('');
+    try {
+      const servico = await Location.hasServicesEnabledAsync();
+      if (!servico) {
+        setErro('GPS desligado. Ative a localização nas configurações do aparelho.');
+        return;
+      }
+
+      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        if (canAskAgain) {
+          setErro('Permissão de localização negada. Toque em "Obter localização" para tentar de novo.');
+        } else {
+          setErro('Permissão bloqueada. Vá em Configurações > Permissões para habilitar o GPS.');
+        }
+        return;
+      }
+
+      const posicao = await Location.getCurrentPositionAsync({
+        // Utiliza High para balancear bateria e precisão. Highest / BestForNavigation gasta muita bateria.
+        accuracy: Location.Accuracy.High,
+      });
+
+      setLocal({
+        latitude: posicao.coords.latitude,
+        longitude: posicao.coords.longitude,
+        precisaoMetros: posicao.coords.accuracy ?? 0,
+      });
+      setErro('');
+    } catch (e) {
+      setErro('Sensor/hardware de localização indisponível.');
+    }
   }
 
   // ----- Câmera -----
@@ -85,48 +84,55 @@ export function TelaRegistro({ pet, onSalvar, onCancelar }: TelaRegistroProps) {
   //           2. LER   → cameraRef.takePictureAsync()
   //           3. PARAR → setMostrarCamera(false) (fecha a view)
   async function abrirCamera() {
-    // TODO P3.19: peça permissão de câmera e abra a view.
-    //   const { status } = await pedirPermissaoCamera();
-    //   if (status !== 'granted') {
-    //     setErro('Permissão de câmera negada.');
-    //     return;
-    //   }
-    //   setMostrarCamera(true);
-    //   setErro('');
+    try {
+      const { status } = await pedirPermissaoCamera();
+      if (status !== 'granted') {
+        setErro('Permissão de câmera negada. Vá em Configurações para habilitar.');
+        return;
+      }
+      setMostrarCamera(true);
+      setErro('');
+    } catch (e) {
+      setErro('Hardware de câmera indisponível.');
+    }
   }
 
   async function tirarFoto() {
-    // TODO P3.20: tire a foto e guarde o URI.
-    //   if (!cameraRef) return;
-    //   const foto = await cameraRef.takePictureAsync({ base64: false });
-    //   if (foto) {
-    //     setFotoUri(foto.uri);
-    //     setMostrarCamera(false);
-    //   }
-    //   Nota: base64: false — para exibir, o uri basta.
-    //   Salvar na galeria não é assunto desta prática.
+    if (!cameraRef) return;
+    try {
+      const foto = await cameraRef.takePictureAsync({ base64: false });
+      if (foto) {
+        setFotoUri(foto.uri);
+        setMostrarCamera(false);
+      }
+    } catch (e) {
+      setErro('Erro ao capturar a foto.');
+    }
   }
 
   function salvar() {
     // TODO P3.23: chame onSalvar com os dados capturados.
-    //   onSalvar(local ?? undefined, fotoUri ?? undefined);
-    //
     // TODO P3.24: o app funciona MESMO quando o usuário nega tudo.
-    //   Um pet sem foto e sem local ainda é um pet.
-    //   O botão Salvar fica habilitado SEMPRE.
+    onSalvar(local ?? undefined, fotoUri ?? undefined);
   }
 
   // ----- Renderização: câmera ativa -----
   if (mostrarCamera) {
     return (
       <View style={styles.tela}>
-        {/* TODO P3.17 (continuação): renderize a CameraView.
-              <CameraView
-                ref={setCameraRef}
-                style={styles.camera}
-                facing="back"
-              />
-              Dois botões: "Tirar foto" (chama tirarFoto) e "Cancelar" (fecha a câmera). */}
+        <CameraView
+          ref={setCameraRef}
+          style={styles.camera}
+          facing="back"
+        />
+        <View style={styles.acoesCamera}>
+            <Pressable onPress={tirarFoto} style={[styles.botaoAcao, { flex: 1 }]}>
+                <Text style={styles.textoBotao}>Tirar foto</Text>
+            </Pressable>
+            <Pressable onPress={() => setMostrarCamera(false)} style={styles.botaoCancelar}>
+                <Text style={styles.textoBotao}>Cancelar</Text>
+            </Pressable>
+        </View>
       </View>
     );
   }
@@ -136,23 +142,13 @@ export function TelaRegistro({ pet, onSalvar, onCancelar }: TelaRegistroProps) {
     <View style={styles.tela}>
       <Text style={tipografia.titulo}>Registrar passeio de {pet.nome}</Text>
 
-      {/* TODO P3.21: mostre o erro com mensagem DISTINTA por cenário.
-            Os cinco cenários que precisam de mensagem própria:
-              1. Permissão de localização negada (canAskAgain: true)
-              2. Permissão de localização bloqueada (canAskAgain: false)
-              3. Serviço de localização desligado
-              4. Permissão de câmera negada
-              5. Sensor/hardware indisponível
-            Cada mensagem diz ao usuário O QUE FAZER, não só que deu erro. */}
+      {/* TODO P3.21: mostre o erro com mensagem DISTINTA por cenário. */}
       {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
 
       {/* Localização */}
       {local ? (
         <View style={styles.secao}>
           <Text style={tipografia.corpo}>
-            {/* Formate lat/lng para HUMANOS, com precisão.
-                Ex: "Local: -8.054, -34.871 (±12m)"
-                Coordenada crua com 14 casas decimais não é informação. */}
             Local: {local.latitude.toFixed(3)}, {local.longitude.toFixed(3)} (±{Math.round(local.precisaoMetros)}m)
           </Text>
         </View>
@@ -167,8 +163,7 @@ export function TelaRegistro({ pet, onSalvar, onCancelar }: TelaRegistroProps) {
         <Image
           source={{ uri: fotoUri }}
           style={styles.previa}
-          // TODO P3.15: contentFit explícito. Por que "cover" e não "contain"?
-          //   Justifique num comentário ou no README.
+          // contentFit="cover" preenche a área mantendo a proporção, enquanto "contain" deixaria espaço vazio
           contentFit="cover"
         />
       ) : (
@@ -179,7 +174,7 @@ export function TelaRegistro({ pet, onSalvar, onCancelar }: TelaRegistroProps) {
 
       {/* Ações */}
       <View style={styles.acoes}>
-        <Pressable onPress={salvar} style={styles.botaoAcao}>
+        <Pressable onPress={salvar} style={[styles.botaoAcao, { flex: 1 }]}>
           <Text style={styles.textoBotao}>Salvar</Text>
         </Pressable>
         <Pressable onPress={onCancelar} style={styles.botaoCancelar}>
@@ -201,20 +196,21 @@ const styles = StyleSheet.create({
   erro: { ...tipografia.corpo, color: cores.erro },
   secao: { gap: espaco.sm },
   camera: { flex: 1, borderRadius: espaco.sm },
+  acoesCamera: { flexDirection: 'row', gap: espaco.md, paddingBottom: espaco.md },
   previa: { width: '100%', height: 200, borderRadius: espaco.sm },
   botaoAcao: {
     backgroundColor: cores.primaria,
     padding: espaco.md,
     borderRadius: espaco.sm,
-    alignItems: 'center' as const,
+    alignItems: 'center',
   },
   botaoCancelar: {
     backgroundColor: cores.textoFraco,
     padding: espaco.md,
     borderRadius: espaco.sm,
-    alignItems: 'center' as const,
+    alignItems: 'center',
     flex: 1,
   },
-  textoBotao: { color: '#FFFFFF', fontWeight: 'bold' as const },
-  acoes: { flexDirection: 'row' as const, gap: espaco.md },
+  textoBotao: { color: '#FFFFFF', fontWeight: 'bold' },
+  acoes: { flexDirection: 'row', gap: espaco.md },
 });

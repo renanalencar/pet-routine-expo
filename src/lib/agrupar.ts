@@ -7,29 +7,45 @@
 // ============================================================
 
 import type { Pet } from '../types/pet';
+import { rotuloStatusPasseio } from '../types/pet';
 
 export type Secao = { title: string; data: Pet[] };
 
 export function agrupar(pets: Pet[]): Secao[] {
   // TODO P3.2: agrupe pelo critério que o grupo escolheu.
-  //   Sugestão: statusPasseio (use rotuloStatusPasseio como título da seção).
-  //   Alternativas válidas: espécie ou faixa etária.
-  //
-  //   Exemplo de abordagem:
-  //     1. Crie um Map<string, Pet[]>
-  //     2. Itere pelos pets, adicionando cada um ao grupo correto
-  //     3. Converta o Map em Secao[]
-  //
   // TODO P3.3: descarte grupos vazios — seção sem itens não aparece na lista.
-  //
   // TODO P3.4: a ordem dos grupos é uma DECISÃO de produto.
-  //   Escreva num comentário qual foi a sua e por quê.
-  //   Ex: "pendente primeiro porque é o que exige ação do dono"
-  return [];
+  // A decisão foi agrupar pelo statusPasseio. A ordem é 'pendente', 'concluido', 'cancelado' 
+  // porque 'pendente' é o que exige ação do usuário mais imediatamente.
+  const grupos = {
+    pendente: [] as Pet[],
+    concluido: [] as Pet[],
+    cancelado: [] as Pet[],
+  };
+
+  for (const pet of pets) {
+    grupos[pet.statusPasseio].push(pet);
+  }
+
+  const secoes: Secao[] = [];
+  
+  if (grupos.pendente.length > 0) {
+    secoes.push({ title: rotuloStatusPasseio('pendente'), data: grupos.pendente });
+  }
+  if (grupos.concluido.length > 0) {
+    secoes.push({ title: rotuloStatusPasseio('concluido'), data: grupos.concluido });
+  }
+  if (grupos.cancelado.length > 0) {
+    secoes.push({ title: rotuloStatusPasseio('cancelado'), data: grupos.cancelado });
+  }
+
+  return secoes;
 }
 
 export function filtrarPorNome(pets: Pet[], busca: string): Pet[] {
   // TODO P3.5: busca case-insensitive. Busca vazia devolve todos.
-  //   Dica: normalize com toLowerCase() em ambos os lados.
-  return pets;
+  if (!busca.trim()) return pets;
+  
+  const termo = busca.toLowerCase();
+  return pets.filter(p => p.nome.toLowerCase().includes(termo));
 }

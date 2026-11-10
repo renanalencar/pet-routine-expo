@@ -22,27 +22,24 @@ export function ItemPet({ pet, onAlternar, onRemover, onRegistrar }: ItemPetProp
   return (
     <Pressable
       // TODO P3.6: toque curto alterna o status do passeio; toque longo remove.
-      //   onPress={() => onAlternar(pet.id)}
-      //   onLongPress={() => onRemover(pet.id)}
-      //
+      onPress={() => onAlternar(pet.id)}
+      onLongPress={() => onRemover(pet.id)}
       // TODO P3.7: acessibilidade — papel e rótulo.
-      //   accessibilityRole="button"
-      //   accessibilityLabel={`${pet.nome}, toque para alternar passeio`}
-      //
+      accessibilityRole="button"
+      accessibilityLabel={`${pet.nome}, toque para alternar passeio`}
       // TODO P3.8: hitSlop e unstable_pressDelay.
-      //   hitSlop amplia a área de toque sem mudar o visual — útil em itens pequenos.
-      //   unstable_pressDelay evita feedback visual ao rolar a lista.
-      //   Justifique cada valor num comentário.
+      // hitSlop={10} amplia um pouco a área tocável para melhorar usabilidade em telas menores.
+      // unstable_pressDelay={150} atrasa o feedback para evitar flashes durante o scroll.
+      hitSlop={10}
+      unstable_pressDelay={150}
       style={({ pressed }) => [
         styles.item,
         // TODO P3.9: feedback visual quando pressed.
-        //   Ex: pressed && { opacity: 0.7 }
+        pressed && { opacity: 0.7 }
       ]}
     >
-      {/* TODO P3.10: reaproveite o CardPet aqui dentro.
-                Passe pet e aoRegistrarPasseio={() => onRegistrar(pet.id)}.
-                O Text onPress do CardPet NÃO conflita com o Pressable:
-                eventos de Text não borbulham para o Pressable pai. */}
+      {/* TODO P3.10: reaproveite o CardPet aqui dentro. */}
+      <CardPet pet={pet} aoRegistrarPasseio={() => onRegistrar(pet.id)} />
     </Pressable>
   );
 }
@@ -50,8 +47,5 @@ export function ItemPet({ pet, onAlternar, onRemover, onRegistrar }: ItemPetProp
 const styles = StyleSheet.create({
   item: {
     // TODO P3.11: SEM margin aqui.
-    //   O espaço entre itens vem de gap no contentContainerStyle
-    //   ou de ItemSeparatorComponent. Margin num item de lista
-    //   é o antipadrão que esta prática ensina a evitar.
   },
 });

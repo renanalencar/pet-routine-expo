@@ -13,21 +13,19 @@ import { cores, espaco, tipografia } from '../theme';
 
 type ListaVaziaProps = {
   // TODO P3.12: uma prop que permita distinguir "primeiro acesso" de "busca sem resultado".
-  //   Sugestão: termoBusca?: string
-  //   Se termoBusca está definido e não-vazio → "busca sem resultado"
-  //   Senão → "primeiro acesso" (a lista está vazia de verdade)
+  termoBusca?: string;
 };
 
-export function ListaVazia(/* TODO P3.12: desestruture a prop */) {
+export function ListaVazia({ termoBusca }: ListaVaziaProps) {
   // TODO P3.13: dois textos diferentes, conforme o cenário.
-  //   Primeiro acesso: "Nenhum pet cadastrado. Que tal adicionar um?"
-  //   Busca sem resultado: "Nenhum pet encontrado para '${termoBusca}'."
-  //   A frase da busca MENCIONA o termo procurado.
-  //   As duas frases são DIFERENTES — repetir a mesma é erro.
+  const texto = termoBusca && termoBusca.trim() !== ''
+    ? `Nenhum pet encontrado para '${termoBusca}'.`
+    : 'Nenhum pet cadastrado. Que tal adicionar um?';
+
   return (
     <View style={styles.container}>
       <Text style={styles.texto}>
-        {/* TODO P3.13 */}
+        {texto}
       </Text>
     </View>
   );
@@ -35,12 +33,13 @@ export function ListaVazia(/* TODO P3.12: desestruture a prop */) {
 
 const styles = StyleSheet.create({
   container: {
-    // TODO P3.14: centralize e use padding generoso (espaco.lg ou xl)
-    alignItems: 'center' as const,
+    // TODO P3.14: centralize e use padding generoso
+    alignItems: 'center',
+    padding: espaco.xl,
   },
   texto: {
     ...tipografia.corpo,
     color: cores.textoFraco,
-    textAlign: 'center' as const,
+    textAlign: 'center',
   },
 });
